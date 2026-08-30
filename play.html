@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>בעד ונגד - הצטרפות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f0d5b7;
+    --espresso: #321a10;
+    --espresso-light: #4f2b1b;
+    --sideA: #b5652b;
+    --sideB: #35465a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Rubik', sans-serif; background: var(--espresso); color: var(--cream); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .card { background: var(--espresso-light); border: 2px solid #6b4530; border-radius: 18px; padding: 24px; max-width: 420px; width: 100%; text-align: center; }
+  h1 { font-weight: 900; font-size: 1.5rem; margin: 0 0 16px; }
+  input { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #6b4530; background: #fff; color: #222; font-size: 1rem; margin-bottom: 12px; font-family: inherit; }
+  button.action { font-family: inherit; font-weight: 700; font-size: 1rem; border: none; border-radius: 12px; padding: 14px 26px; cursor: pointer; background: linear-gradient(135deg, var(--cream), #d8b98e); color: var(--espresso); width: 100%; }
+  button.action:disabled { opacity: 0.4; }
+
+  .question-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 6px; }
+  .article-src { color: #d8c0a8; font-size: 0.8rem; margin-bottom: 20px; }
+  .side-info { border-radius: 14px; padding: 16px; margin-bottom: 12px; text-align: right; opacity: 0.5; transition: all 0.3s; }
+  .side-info.sideA { background: rgba(181,101,43,0.2); }
+  .side-info.sideB { background: rgba(53,70,90,0.4); }
+  .side-info.active { opacity: 1; box-shadow: 0 0 20px rgba(240,213,183,0.2); }
+  .side-info .role { font-weight: 900; margin-bottom: 4px; }
+  .side-info .quote { font-style: italic; font-size: 0.9rem; line-height: 1.4; }
+
+  .vote-btn { display: block; width: 100%; border-radius: 14px; padding: 20px; margin-bottom: 12px; font-family: inherit; font-weight: 900; font-size: 1rem; border: 3px solid transparent; cursor: pointer; color: #fff; }
+  .vote-btn.voteA { background: var(--sideA); }
+  .vote-btn.voteB { background: var(--sideB); }
+  .vote-btn.selected { border-color: var(--cream); }
+  .vote-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status { font-weight: 700; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="card" id="joinCard">
+  <h1>⚖️ בעד ונגד</h1>
+  <p>הצטרפו עם שם פרטי</p>
+  <input id="nameInput" placeholder="השם שלכם" maxlength="20" />
+  <button class="action" id="joinBtn" onclick="joinGame()">הצטרפו</button>
+</div>
+
+<div class="card" id="gameCard" style="display:none;">
+  <div id="waitingView">
+    <h1>⚖️ בעד ונגד</h1>
+    <p>ממתינים שהמנחה יבחר עימות...</p>
+  </div>
+
+  <div id="activeView" style="display:none;">
+    <div class="question-title" id="questionTitle"></div>
+    <div class="article-src" id="articleSrc"></div>
+
+    <div class="side-info sideA" id="sideACard">
+      <div class="role" id="sideARole"></div>
+      <div class="quote" id="sideAQuote"></div>
+    </div>
+    <div class="side-info sideB" id="sideBCard">
+      <div class="role" id="sideBRole"></div>
+      <div class="quote" id="sideBQuote"></div>
+    </div>
+
+    <div id="voteButtons" style="display:none;">
+      <button class="vote-btn voteA" id="voteABtn" onclick="castVote('A')"></button>
+      <button class="vote-btn voteB" id="voteBBtn" onclick="castVote('B')"></button>
+    </div>
+    <div class="status" id="statusMsg"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="js/gameData.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "__FIREBASE_API_KEY__",
+  databaseURL: "__FIREBASE_DB_URL__",
+  projectId: "__FIREBASE_PROJECT_ID__",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let myId = localStorage.getItem('beedVenegedPlayerId') || ('p' + Math.random().toString(36).slice(2, 10));
+localStorage.setItem('beedVenegedPlayerId', myId);
+let myVote = null;
+
+function joinGame() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return;
+  db.ref('players/' + myId).set({ name });
+  localStorage.setItem('beedVenegedName', name);
+  document.getElementById('joinCard').style.display = 'none';
+  document.getElementById('gameCard').style.display = 'block';
+}
+
+const savedName = localStorage.getItem('beedVenegedName');
+if (savedName) {
+  document.getElementById('nameInput').value = savedName;
+}
+
+function castVote(side) {
+  if (myVote) return;
+  myVote = side;
+  db.ref('votes/' + myId).set(side);
+  renderVoteState();
+}
+
+function renderVoteState() {
+  document.getElementById('voteABtn').disabled = !!myVote;
+  document.getElementById('voteBBtn').disabled = !!myVote;
+  document.getElementById('voteABtn').classList.toggle('selected', myVote === 'A');
+  document.getElementById('voteBBtn').classList.toggle('selected', myVote === 'B');
+  document.getElementById('statusMsg').innerText = myVote ? 'הצבעתם! ממתינים לתוצאה...' : '';
+}
+
+function renderGame(game) {
+  document.getElementById('waitingView').style.display = game.state === 'active' ? 'none' : 'block';
+  document.getElementById('activeView').style.display = game.state === 'active' ? 'block' : 'none';
+  if (game.state !== 'active') return;
+
+  const m = window.gameData.matchups.find(x => x.id === game.matchupId);
+  if (!m) return;
+
+  document.getElementById('questionTitle').innerText = m.question;
+  document.getElementById('articleSrc').innerText = m.articleSource;
+  document.getElementById('sideARole').innerText = m.sideA.role;
+  document.getElementById('sideAQuote').innerText = '"' + m.sideA.quote + '"';
+  document.getElementById('sideBRole').innerText = m.sideB.role;
+  document.getElementById('sideBQuote').innerText = '"' + m.sideB.quote + '"';
+
+  const cardA = document.getElementById('sideACard');
+  const cardB = document.getElementById('sideBCard');
+  cardA.classList.toggle('active', game.phase === 'sideA' || game.phase !== 'sideB');
+  cardB.classList.toggle('active', game.phase === 'sideB' || game.phase !== 'sideA');
+  if (game.phase === 'intro') { cardA.classList.remove('active'); cardB.classList.remove('active'); }
+
+  const voteButtons = document.getElementById('voteButtons');
+  const statusMsg = document.getElementById('statusMsg');
+  if (game.phase === 'voting') {
+    voteButtons.style.display = 'block';
+    document.getElementById('voteABtn').innerText = m.sideA.role + ' משכנע/ת אותי';
+    document.getElementById('voteBBtn').innerText = m.sideB.role + ' משכנע/ת אותי';
+    renderVoteState();
+  } else {
+    voteButtons.style.display = 'none';
+    if (game.phase === 'results') {
+      statusMsg.innerText = 'תודה על ההצבעה! עקבו אחרי המסך הראשי לתוצאות.';
+    } else {
+      statusMsg.innerText = game.phase === 'sideA' || game.phase === 'sideB' ? 'הקשיבו לטיעונים...' : '';
+    }
+    myVote = null;
+  }
+}
+
+db.ref('game').on('value', snap => {
+  const game = snap.val() || { state: 'lobby' };
+  renderGame(game);
+});
+
+db.ref('votes/' + myId).on('value', snap => {
+  myVote = snap.val() || null;
+  renderVoteState();
+});
+</script>
+</body>
+</html>

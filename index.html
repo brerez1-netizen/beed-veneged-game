@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>בעד ונגד - מסך מרצה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f0d5b7;
+    --espresso: #321a10;
+    --espresso-light: #4f2b1b;
+    --academy: #35465a;
+    --academy-light: #4d6485;
+    --sideA: #b5652b;
+    --sideB: #35465a;
+    --good: #3ecf6e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Rubik', sans-serif; background: var(--espresso); color: var(--cream); min-height: 100vh; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  h1 { font-weight: 900; font-size: 1.8rem; margin: 0 0 4px; color: var(--cream); text-align: center; }
+  .subtitle { text-align: center; color: #d8c0a8; margin-bottom: 24px; }
+
+  .card { background: var(--espresso-light); border: 2px solid #6b4530; border-radius: 18px; padding: 28px; margin-bottom: 20px; }
+
+  .qr-row { display: flex; gap: 24px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .qr-row img { background: #fff; padding: 8px; border-radius: 10px; }
+  .players { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .chip { background: rgba(255,255,255,0.08); border: 2px solid var(--cream); border-radius: 30px; padding: 5px 14px; font-weight: 700; font-size: 0.9rem; }
+
+  .matchup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .matchup-btn { background: var(--academy); border: 2px solid var(--academy-light); border-radius: 14px; padding: 16px; text-align: right; cursor: pointer; color: var(--cream); font-family: inherit; }
+  .matchup-btn:hover { background: var(--academy-light); }
+  .matchup-btn .q { font-weight: 900; font-size: 1.05rem; margin-bottom: 6px; }
+  .matchup-btn .src { font-size: 0.8rem; color: #c9d3dc; }
+
+  .question-title { text-align: center; font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; }
+  .article-src { text-align: center; color: #d8c0a8; font-size: 0.9rem; margin-bottom: 24px; }
+
+  .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .side { border-radius: 16px; padding: 20px; border: 3px solid transparent; transition: all 0.3s; opacity: 0.55; }
+  .side.sideA { background: rgba(181,101,43,0.18); }
+  .side.sideB { background: rgba(53,70,90,0.35); }
+  .side.active { opacity: 1; border-color: var(--cream); box-shadow: 0 0 30px rgba(240,213,183,0.25); transform: scale(1.02); }
+  .side .role { font-weight: 900; font-size: 1.15rem; margin-bottom: 4px; }
+  .side .position { font-size: 0.9rem; color: #d8c0a8; margin-bottom: 10px; }
+  .side .quote { font-style: italic; line-height: 1.5; }
+
+  .timer { text-align: center; font-size: 3rem; font-weight: 900; margin: 14px 0; }
+  .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  button.action { font-family: inherit; font-weight: 700; font-size: 1rem; border: none; border-radius: 12px; padding: 12px 26px; cursor: pointer; background: linear-gradient(135deg, var(--cream), #d8b98e); color: var(--espresso); }
+  button.action:hover { filter: brightness(1.08); }
+  button.ghost { background: transparent; border: 2px solid #d8c0a8; color: #d8c0a8; }
+
+  .vote-count { text-align: center; font-size: 1.3rem; margin-bottom: 16px; }
+  .results-bar { display: flex; height: 60px; border-radius: 12px; overflow: hidden; margin-bottom: 16px; border: 2px solid var(--cream); }
+  .results-bar .barA { background: var(--sideA); display: flex; align-items: center; justify-content: center; font-weight: 900; transition: width 0.6s; }
+  .results-bar .barB { background: var(--sideB); display: flex; align-items: center; justify-content: center; font-weight: 900; transition: width 0.6s; }
+
+  .reset-btn { position: fixed; bottom: 14px; left: 14px; opacity: 0.5; font-size: 0.75rem; padding: 6px 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚖️ בעד ונגד</h1>
+  <p class="subtitle">עימותים אמיתיים מתכנון ובנייה בישראל</p>
+
+  <div id="lobbyView">
+    <div class="card">
+      <div class="qr-row">
+        <div><img id="qrPlay" width="150" height="150" alt="QR הצטרפות" /><p style="color:#333;margin:4px 0 0;font-weight:700;text-align:center;">הצטרפות</p></div>
+      </div>
+      <div class="players" id="playersList"></div>
+    </div>
+    <div class="card">
+      <p style="text-align:center; font-weight:700; margin-top:0;">בחרו עימות להתחלת הסבב:</p>
+      <div class="matchup-grid" id="matchupGrid"></div>
+    </div>
+  </div>
+
+  <div id="activeView" style="display:none;">
+    <div class="card">
+      <div class="question-title" id="questionTitle"></div>
+      <div class="article-src" id="articleSrc"></div>
+
+      <div class="sides">
+        <div class="side sideA" id="sideACard">
+          <div class="role" id="sideARole"></div>
+          <div class="position" id="sideAPosition"></div>
+          <div class="quote" id="sideAQuote"></div>
+        </div>
+        <div class="side sideB" id="sideBCard">
+          <div class="role" id="sideBRole"></div>
+          <div class="position" id="sideBPosition"></div>
+          <div class="quote" id="sideBQuote"></div>
+        </div>
+      </div>
+
+      <div class="timer" id="timerDisplay" style="display:none;"></div>
+      <div class="vote-count" id="voteCount" style="display:none;"></div>
+      <div class="results-bar" id="resultsBar" style="display:none;">
+        <div class="barA" id="barA"></div>
+        <div class="barB" id="barB"></div>
+      </div>
+
+      <div class="controls" id="phaseControls"></div>
+    </div>
+  </div>
+
+  <button class="action ghost reset-btn" onclick="if(confirm('לאפס את כל המשחק?')) resetFullGame();">איפוס עמוק</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="js/gameData.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "__FIREBASE_API_KEY__",
+  databaseURL: "__FIREBASE_DB_URL__",
+  projectId: "__FIREBASE_PROJECT_ID__",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+function setupQR() {
+  const playUrl = location.href.replace(/index\.html.*$/, 'play.html');
+  document.getElementById('qrPlay').src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(playUrl);
+}
+setupQR();
+
+function renderMatchupGrid() {
+  const grid = document.getElementById('matchupGrid');
+  grid.innerHTML = '';
+  window.gameData.matchups.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'matchup-btn';
+    btn.innerHTML = `<div class="q">${m.question}</div><div class="src">${m.articleSource}</div>`;
+    btn.onclick = () => startMatchup(m.id);
+    grid.appendChild(btn);
+  });
+}
+renderMatchupGrid();
+
+function startMatchup(id) {
+  db.ref('game').set({ state: 'active', matchupId: id, phase: 'intro', phaseEndsAt: null });
+  db.ref('votes').remove();
+}
+
+function setPhase(phase, durationSec) {
+  const update = { phase };
+  update.phaseEndsAt = durationSec ? (Date.now() + durationSec * 1000) : null;
+  db.ref('game').update(update);
+}
+
+function backToLobby() {
+  db.ref('game').set({ state: 'lobby' });
+  db.ref('votes').remove();
+}
+
+function resetFullGame() {
+  db.ref('/').set({ game: { state: 'lobby' }, players: {}, votes: {} });
+}
+
+let timerInterval = null;
+function renderTimer(endsAt) {
+  clearInterval(timerInterval);
+  const el = document.getElementById('timerDisplay');
+  if (!endsAt) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  function tick() {
+    const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+    el.innerText = remaining + '״';
+    if (remaining <= 0) clearInterval(timerInterval);
+  }
+  tick();
+  timerInterval = setInterval(tick, 250);
+}
+
+let currentVotes = {};
+function renderActive(game) {
+  const m = window.gameData.matchups.find(x => x.id === game.matchupId);
+  if (!m) return;
+
+  document.getElementById('questionTitle').innerText = m.question;
+  document.getElementById('articleSrc').innerText = m.articleTitle + ' · ' + m.articleSource;
+  document.getElementById('sideARole').innerText = m.sideA.role;
+  document.getElementById('sideAPosition').innerText = m.sideA.position;
+  document.getElementById('sideAQuote').innerText = '"' + m.sideA.quote + '"';
+  document.getElementById('sideBRole').innerText = m.sideB.role;
+  document.getElementById('sideBPosition').innerText = m.sideB.position;
+  document.getElementById('sideBQuote').innerText = '"' + m.sideB.quote + '"';
+
+  const cardA = document.getElementById('sideACard');
+  const cardB = document.getElementById('sideBCard');
+  cardA.classList.toggle('active', game.phase === 'sideA');
+  cardB.classList.toggle('active', game.phase === 'sideB');
+  if (game.phase === 'intro' || game.phase === 'voting' || game.phase === 'results') {
+    cardA.classList.add('active'); cardB.classList.add('active');
+  }
+
+  renderTimer(game.phase === 'sideA' || game.phase === 'sideB' ? game.phaseEndsAt : null);
+
+  const voteCountEl = document.getElementById('voteCount');
+  const resultsBarEl = document.getElementById('resultsBar');
+  voteCountEl.style.display = 'none';
+  resultsBarEl.style.display = 'none';
+
+  const controls = document.getElementById('phaseControls');
+  controls.innerHTML = '';
+
+  function addBtn(label, fn, ghost) {
+    const b = document.createElement('button');
+    b.className = 'action' + (ghost ? ' ghost' : '');
+    b.innerText = label;
+    b.onclick = fn;
+    controls.appendChild(b);
+  }
+
+  if (game.phase === 'intro') {
+    addBtn('🎙️ התחילו את ' + m.sideA.role + ' (60 שנ\')', () => setPhase('sideA', 60));
+  } else if (game.phase === 'sideA') {
+    addBtn('🎙️ עברו ל-' + m.sideB.role + ' (60 שנ\')', () => setPhase('sideB', 60));
+  } else if (game.phase === 'sideB') {
+    addBtn('🗳️ פתחו הצבעה', () => setPhase('voting', null));
+  } else if (game.phase === 'voting') {
+    const count = Object.keys(currentVotes).length;
+    voteCountEl.style.display = 'block';
+    voteCountEl.innerText = '🗳️ הצביעו ' + count + ' מתוך ' + Object.keys(window.currentPlayers || {}).length;
+    addBtn('📊 סגרו הצבעה וגלו תוצאות', () => setPhase('results', null));
+  } else if (game.phase === 'results') {
+    const votesArr = Object.values(currentVotes);
+    const aCount = votesArr.filter(v => v === 'A').length;
+    const bCount = votesArr.filter(v => v === 'B').length;
+    const total = aCount + bCount || 1;
+    const aPct = Math.round((aCount / total) * 100);
+    const bPct = 100 - aPct;
+    resultsBarEl.style.display = 'flex';
+    document.getElementById('barA').style.width = aPct + '%';
+    document.getElementById('barA').innerText = aCount + ' (' + aPct + '%)';
+    document.getElementById('barB').style.width = bPct + '%';
+    document.getElementById('barB').innerText = bCount + ' (' + bPct + '%)';
+    addBtn('➡️ עימות הבא', backToLobby);
+  }
+}
+
+db.ref('game').on('value', snap => {
+  const game = snap.val() || { state: 'lobby' };
+  document.getElementById('lobbyView').style.display = game.state === 'lobby' ? 'block' : 'none';
+  document.getElementById('activeView').style.display = game.state === 'active' ? 'block' : 'none';
+  if (game.state === 'active') renderActive(game);
+});
+
+db.ref('players').on('value', snap => {
+  window.currentPlayers = snap.val() || {};
+  const list = document.getElementById('playersList');
+  list.innerHTML = Object.values(window.currentPlayers).map(p => `<div class="chip">${p.name}</div>`).join('');
+});
+
+db.ref('votes').on('value', snap => {
+  currentVotes = snap.val() || {};
+  db.ref('game').once('value').then(snap2 => {
+    const g = snap2.val();
+    if (g && g.state === 'active') renderActive(g);
+  });
+});
+</script>
+</body>
+</html>
