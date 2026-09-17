@@ -1,0 +1,5 @@
+{
+  "database": [
+    { "instance": "erez-beed-veneged-game-f7986-default-rtdb", "rules": "database.rules.json" }
+  ]
+}
