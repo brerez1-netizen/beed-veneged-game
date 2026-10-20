@@ -38,6 +38,8 @@
 
   .question-title { text-align: center; font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; }
   .article-src { text-align: center; color: #d8c0a8; font-size: 0.9rem; margin-bottom: 24px; }
+  /* בלי זה הקישור יוצא כחול ברירת מחדל על רקע כהה, ולא נקרא מהמקרן */
+  .article-src a { color: inherit; text-decoration: underline; }
 
   .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
   .side { border-radius: 16px; padding: 20px; border: 3px solid transparent; transition: all 0.3s; opacity: 0.55; }
@@ -184,7 +186,17 @@ function renderActive(game) {
   if (!m) return;
 
   document.getElementById('questionTitle').innerText = m.question;
-  document.getElementById('articleSrc').innerText = m.articleTitle + ' · ' + m.articleSource;
+  // כותרת הכתבה היא קישור, כדי שאפשר יהיה לפתוח אותה בכיתה אם עולה ויכוח
+  // על מה באמת נכתב שם. textContent על הטקסט כדי שגרש בכותרת לא ישבור HTML.
+  const srcEl = document.getElementById('articleSrc');
+  srcEl.textContent = '';
+  const a = document.createElement('a');
+  a.href = m.articleUrl || '#';
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.textContent = m.articleTitle;
+  srcEl.appendChild(a);
+  srcEl.appendChild(document.createTextNode(' · ' + m.articleSource));
   document.getElementById('sideARole').innerText = m.sideA.role;
   document.getElementById('sideAPosition').innerText = m.sideA.position;
   document.getElementById('sideAQuote').innerText = '"' + m.sideA.quote + '"';

@@ -1,10 +1,14 @@
 // בעד ונגד - 7 עימותים אמיתיים מכתבות תכנון ובנייה, לשיעור "מהו תכנון".
+// articleTitle היא הכותרת המילולית של הכתבה ו-articleUrl הקישור
+// אליה. שניהם מזינים גם את דפי ההכנה של הזוגות, שנוצרים ב-
+// scripts/beed-veneged-handouts.py ב-workspace. לתקן כאן בלבד.
 // כל הציטוטים והעובדות מאומתים מול הכתבות המקוריות - שום דבר לא הומצא.
 window.gameData = {
   matchups: [
     {
       id: 1,
-      articleTitle: 'בית המשפט ביטל הקמת בית ספר בעג\'מי - "מהווה מטרד לשכנים"',
+      articleTitle: "ביהמ\"ש ביטל הקמת בית ספר: מהווה מטרד לשכנים",
+      articleUrl: "https://www.calcalist.co.il/articles/0,7340,L-3680709,00.html",
       articleSource: "כלכליסט, 10.02.16",
       question: "האם הרחבת בית הספר בעג'מי צריכה להתאשר?",
       sideA: {
@@ -20,7 +24,8 @@ window.gameData = {
     },
     {
       id: 2,
-      articleTitle: "המגדל הצרפתי: סיפורו המלא של המגדל בנווה צדק",
+      articleTitle: "\"המגדל הצרפתי\": סיפורו המלא של המגדל בנווה צדק - היזם, השכנים, הצרפתים והוועדה לתכנון ובנייה",
+      articleUrl: "https://www.themarker.com/realestate/2008-05-29/ty-article/0000017f-e6f5-d62c-a1ff-feff25cd0000",
       articleSource: "TheMarker, 29.05.08",
       question: "האם מגדל 32 קומות מתאים לשכונת נווה צדק ההיסטורית?",
       sideA: {
@@ -37,6 +42,7 @@ window.gameData = {
     {
       id: 3,
       articleTitle: "בעד או נגד: האם הגיע הזמן לסגור את שדה דב?",
+      articleUrl: "https://mida.org.il/2019/06/24/%D7%91%D7%A2%D7%93-%D7%90%D7%95-%D7%A0%D7%92%D7%93-%D7%94%D7%90%D7%9D-%D7%94%D7%92%D7%99%D7%A2-%D7%94%D7%96%D7%9E%D7%9F-%D7%9C%D7%A1%D7%92%D7%95%D7%A8-%D7%90%D7%AA-%D7%A9%D7%93%D7%94-%D7%93%D7%91/",
       articleSource: "mida.org.il, 24.06.19",
       question: "האם כדאי לסגור את שדה דב ולפנות את השטח לדיור?",
       sideA: {
@@ -52,7 +58,8 @@ window.gameData = {
     },
     {
       id: 4,
-      articleTitle: "מאבק חברתי או נדל\"ני? כך מנסים תושבי רעננה להזיז את תוואי המטרו",
+      articleTitle: "מאבק חברתי או נדל\"ני? כך מנסים תושבי רעננה להזיז את תוואי המטרו שעובר מתחת לבתיהם",
+      articleUrl: "https://www.calcalist.co.il/local_news/article/bkigkkxrk",
       articleSource: "כלכליסט, 11.10.21",
       question: "האם צריך לשנות את תוואי המטרו כדי להתאים לדרישת התושבים?",
       sideA: {
@@ -68,7 +75,8 @@ window.gameData = {
     },
     {
       id: 5,
-      articleTitle: "נבטים או רמת דוד? הכרעה על שדה תעופה משלים לנתב\"ג",
+      articleTitle: "נבטים או רמת דוד? החברה להגנת הטבע ופירמת רו\"ח BDO בעד שדה תעופה בנגב",
+      articleUrl: "https://www.calcalist.co.il/real_estate/articles/0,7340,L-3878713,00.html",
       articleSource: "כלכליסט, 03.12.20",
       question: "היכן נכון למקם שדה תעופה בינלאומי משלים - נבטים או רמת דוד?",
       sideA: {
@@ -85,6 +93,7 @@ window.gameData = {
     {
       id: 6,
       articleTitle: "הותמ\"ל תדון בהרחבת יקנעם על חשבון שטחי החקלאות של עין העמק",
+      articleUrl: "https://www.calcalist.co.il/real-estate/article/byqhzfgrt",
       articleSource: "כלכליסט, 14.03.24",
       question: "האם נכון להרחיב את יקנעם עילית על חשבון השטחים החקלאיים של עין העמק?",
       sideA: {
@@ -100,7 +109,8 @@ window.gameData = {
     },
     {
       id: 7,
-      articleTitle: "לא ליד ביתי: תושבים בקריית גת נגד הוסטלים לאוטיסטים בשכונה",
+      articleTitle: "לא ליד ביתי - תושבים בקריית גת נגד הוסטלים לאוטיסטים בשכונה",
+      articleUrl: "https://www.walla.co.il/news/israel/2859099",
       articleSource: "וואלה, 01.06.15",
       question: "האם מותר לפתוח הוסטל לאנשים עם אוטיזם בתוך שכונת מגורים רגילה?",
       sideA: {
